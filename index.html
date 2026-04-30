@@ -2,21 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Квиз вокруг света: интерактивная платформа для изучения традиций</title>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,500;14..32,700;14..32,800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&display=swap" rel="stylesheet">
     <style>
-        /* все стили те же, что и в предыдущей версии – не меняем */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-            background: radial-gradient(circle at 10% 30%, #ff7e5e, #feb47b);
+            /* Голубые тона: градиент от небесного до аквамарина */
+            background: radial-gradient(circle at 10% 30%, #2b9bff, #0a4d8c);
             min-height: 100vh;
-            padding: 2rem 1.5rem;
+            padding: 1.2rem 1rem;
             position: relative;
             overflow-x: hidden;
         }
+
+        /* Декоративные элементы в голубой гамме */
         body::before {
             content: '';
             position: fixed;
@@ -24,266 +32,330 @@
             left: 0;
             width: 100%;
             height: 120px;
-            background: repeating-linear-gradient( transparent 0px, transparent 28px, rgba(255,245,200,0.2) 28px, rgba(255,235,170,0.2) 56px);
+            background: repeating-linear-gradient(transparent 0px, transparent 28px, rgba(255, 255, 255, 0.15) 28px, rgba(200, 230, 255, 0.25) 56px);
             pointer-events: none;
             z-index: 0;
         }
+
         body::after {
-            content: '🌴 🌊 ☀️ 🦩 ⛵ 🍉';
+            content: '🌊 ⛵ 🐬 🧭 🗺️ 🧊';
             position: fixed;
             bottom: 15px;
             left: 0;
             width: 100%;
-            font-size: 48px;
+            font-size: 42px;
             text-align: center;
-            opacity: 0.1;
-            letter-spacing: 20px;
+            opacity: 0.12;
+            letter-spacing: 18px;
             pointer-events: none;
             white-space: nowrap;
             font-weight: 400;
             z-index: 0;
         }
+
         .container {
             max-width: 1350px;
             margin: 0 auto;
             position: relative;
             z-index: 10;
         }
+
+        /* ---- адаптивные вкладки (mode) ---- */
         .mode-tabs {
             display: flex;
             justify-content: center;
-            gap: 1.2rem;
-            margin-bottom: 2.5rem;
+            gap: 0.9rem;
+            margin-bottom: 1.8rem;
             flex-wrap: wrap;
         }
+
         .mode-btn {
-            background: rgba(255,255,240,0.25);
+            background: rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(12px);
-            border: 1.5px solid rgba(255,250,210,0.9);
-            padding: 0.9rem 2.4rem;
+            border: 1.5px solid rgba(180, 220, 255, 0.9);
+            padding: 0.7rem 1.6rem;
             border-radius: 60px;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
             font-weight: 700;
             letter-spacing: -0.2px;
             cursor: pointer;
             transition: all 0.25s ease;
             color: white;
             font-family: inherit;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
+
         .mode-btn.active {
-            background: linear-gradient(115deg, #FFD166, #FF8C42);
-            color: #2C1A0A;
+            background: linear-gradient(115deg, #48c6ef, #1e88e5);
+            color: #0a2f44;
             border-color: white;
-            box-shadow: 0 10px 25px -8px rgba(0,0,0,0.3), 0 0 0 2px rgba(255,225,140,0.8);
+            box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(72, 198, 239, 0.7);
             transform: scale(1.02);
         }
-        .quiz-card {
-            background: rgba(255, 254, 250, 0.98);
-            border-radius: 3rem;
+
+        /* карточка квиза + админ-панель */
+        .quiz-card, .admin-card {
+            background: rgba(255, 255, 254, 0.98);
+            border-radius: 2rem;
             overflow: hidden;
-            box-shadow: 0 30px 50px -20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,215,130,0.6);
+            box-shadow: 0 25px 45px -18px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(30, 136, 229, 0.5);
             transition: transform 0.2s ease;
         }
+
+        /* шапка с голубым градиентом */
         .travel-header {
-            background: linear-gradient(125deg, #F97316, #F43F5E);
-            padding: 1.6rem 2.2rem;
+            background: linear-gradient(125deg, #1e88e5, #0b5fa0);
+            padding: 1.2rem 1.5rem;
             color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 0.8rem;
+            gap: 0.7rem;
         }
+
         .title-box h1 {
-            font-size: 1.9rem;
+            font-size: 1.6rem;
             letter-spacing: -0.5px;
             font-weight: 800;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
+
         .title-box p {
-            opacity: 0.85;
-            font-size: 0.85rem;
-            margin-top: 6px;
+            opacity: 0.9;
+            font-size: 0.75rem;
+            margin-top: 5px;
             font-weight: 500;
         }
+
         .badge {
-            background: #FFE6B3;
-            color: #F43F5E;
+            background: #c4e6ff;
+            color: #0a5b92;
             border-radius: 100px;
-            padding: 0.5rem 1.6rem;
+            padding: 0.4rem 1.2rem;
             font-weight: 800;
-            font-size: 0.8rem;
-            backdrop-filter: blur(2px);
+            font-size: 0.75rem;
         }
+
         .progress-strip {
-            background: #FFF4E0;
-            padding: 1rem 2rem;
+            background: #eef5fc;
+            padding: 0.8rem 1.2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 2px solid #FFCD94;
+            gap: 10px;
+            border-bottom: 2px solid #7abff7;
         }
+
         .q-counter, .score-badge, .player-name-display {
-            background: #FFB347;
-            padding: 0.5rem 1.4rem;
+            background: #2c7be5;
+            padding: 0.45rem 1.2rem;
             border-radius: 40px;
             font-weight: 700;
-            font-size: 0.9rem;
-            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.05), 0 3px 8px rgba(0,0,0,0.05);
-            color: #2E241F;
+            font-size: 0.85rem;
+            box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.05), 0 3px 8px rgba(0, 0, 0, 0.05);
+            color: white;
         }
-        .score-badge { background: #FF8C42; color: white; }
-        .player-name-display { background: #F4A261; color: white; }
+
+        .score-badge {
+            background: #0f6bcf;
+        }
+
+        .player-name-display {
+            background: #3993e0;
+        }
+
         .question-area {
-            padding: 2rem 2rem 2rem 2rem;
+            padding: 1.5rem 1.2rem 1.8rem;
         }
+
         .question-text {
-            font-size: 1.6rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            background: #FFFBF0;
-            padding: 1.2rem 1.8rem;
-            border-radius: 3rem;
-            border-left: 12px solid #FF9F43;
-            color: #2C3E2F;
-            margin-bottom: 2rem;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.02);
-            line-height: 1.3;
+            background: #f3f9ff;
+            padding: 1rem 1.2rem;
+            border-radius: 2rem;
+            border-left: 9px solid #48c6ef;
+            color: #0c3752;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            line-height: 1.35;
         }
+
         .options-grid {
             display: flex;
             flex-direction: column;
-            gap: 0.9rem;
-            margin-bottom: 1.8rem;
+            gap: 0.8rem;
+            margin-bottom: 1.4rem;
         }
+
         .opt {
-            background: #FFFFFF;
-            padding: 1rem 1.8rem;
+            background: #ffffff;
+            padding: 0.9rem 1.2rem;
             border-radius: 60px;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            border: 1.5px solid #FFD8A5;
+            border: 1.5px solid #b8d9ff;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 14px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-            font-size: 1rem;
+            gap: 12px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+            font-size: 0.95rem;
         }
+
         .opt::before {
-            content: "🌎";
-            font-size: 1.3rem;
+            content: "🌍";
+            font-size: 1.25rem;
             transition: transform 0.2s;
-            width: 32px;
+            width: 30px;
             display: inline-block;
         }
+
         .opt:hover {
-            background: #FFF2DF;
-            border-color: #FFB347;
-            transform: translateX(6px);
-            box-shadow: 0 8px 18px rgba(255, 140, 66, 0.2);
+            background: #eaf4ff;
+            border-color: #48b5ff;
+            transform: translateX(5px);
         }
+
         .opt.selected-correct {
-            background: #D9FFE6;
-            border-color: #2ECC71;
-            box-shadow: 0 0 0 2px #2ECC71;
+            background: #d4f0f0;
+            border-color: #2ecc71;
+            box-shadow: 0 0 0 2px #2ecc71;
         }
-        .opt.selected-correct::before { content: "✅"; transform: scale(1.1); }
+
+        .opt.selected-correct::before {
+            content: "✅";
+            transform: scale(1.05);
+        }
+
         .opt.selected-wrong {
-            background: #FFE2DD;
-            border-color: #FF6B6B;
+            background: #ffe5e5;
+            border-color: #ff6b6b;
         }
-        .opt.selected-wrong::before { content: "❌"; }
+
+        .opt.selected-wrong::before {
+            content: "❌";
+        }
+
         .explanation {
-            background: #FEF5E7;
-            padding: 1rem 1.5rem;
-            border-radius: 2rem;
-            margin: 1rem 0 1.2rem;
-            border-left: 8px solid #FFB347;
+            background: #e9f2fa;
+            padding: 0.9rem 1.2rem;
+            border-radius: 1.5rem;
+            margin: 0.8rem 0 1rem;
+            border-left: 7px solid #48c6ef;
             font-weight: 500;
-            color: #4F3A22;
-            font-size: 0.95rem;
+            color: #1d4e6e;
+            font-size: 0.9rem;
             animation: fadeSlideUp 0.3s ease;
         }
+
         @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .nav-buttons {
             display: flex;
             justify-content: space-between;
-            gap: 1rem;
-            margin-top: 1.8rem;
+            gap: 0.8rem;
+            margin-top: 1.2rem;
         }
+
         .btn {
-            padding: 0.8rem 2rem;
+            padding: 0.7rem 1.4rem;
             border: none;
             border-radius: 60px;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s ease;
             font-family: inherit;
+            text-align: center;
         }
+
         .btn-primary {
-            background: linear-gradient(95deg, #FF9F4A, #FF5F6D);
+            background: linear-gradient(95deg, #2c7be5, #1565c0);
             color: white;
-            box-shadow: 0 6px 14px rgba(255, 95, 109, 0.35);
+            box-shadow: 0 5px 12px rgba(30, 100, 200, 0.4);
         }
-        .btn-primary:hover { transform: translateY(-3px); filter: brightness(1.02); box-shadow: 0 12px 22px rgba(255, 80, 70, 0.4); }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.02);
+        }
+
         .btn-secondary {
-            background: #F4C28C;
-            color: #2E241F;
+            background: #cfe4fc;
+            color: #0e4770;
         }
-        .btn-secondary:hover { background: #FFB347; transform: translateY(-2px); }
+
+        .btn-secondary:hover {
+            background: #b3d5ff;
+            transform: translateY(-2px);
+        }
+
         .btn-cert {
-            background: linear-gradient(115deg, #2A9D8F, #219EBC);
+            background: linear-gradient(115deg, #1e88e5, #0d47a1);
             color: white;
         }
+
         .btn-cert-open {
-            background: linear-gradient(115deg, #3498db, #2980b9);
+            background: linear-gradient(115deg, #42a5f5, #1976d2);
         }
+
         .admin-card {
-            background: rgba(255, 253, 245, 0.98);
-            border-radius: 3rem;
-            padding: 1.8rem;
-            box-shadow: 0 25px 40px rgba(0,0,0,0.2);
-            backdrop-filter: blur(2px);
+            background: rgba(255, 255, 245, 0.98);
+            border-radius: 2rem;
+            padding: 1.2rem;
         }
+
         .admin-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            border-bottom: 2px solid #FFD5A4;
-            padding-bottom: 1.2rem;
-            margin-bottom: 1.8rem;
+            border-bottom: 2px solid #99caff;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
         }
+
         .admin-header h2 {
-            background: linear-gradient(125deg, #F97316, #FFB347);
+            background: linear-gradient(125deg, #1e88e5, #0b5fa0);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 800;
         }
+
         .login-area {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            flex-wrap: wrap;
         }
+
         .login-input {
-            padding: 0.7rem 1.4rem;
+            padding: 0.6rem 1.2rem;
             border-radius: 60px;
-            border: 1px solid #FFC491;
+            border: 1px solid #7abff7;
             background: white;
             font-family: inherit;
+            font-size: 0.85rem;
         }
+
         .add-record-area {
             margin-top: 1rem;
             display: flex;
@@ -291,144 +363,294 @@
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
-            border-radius: 1.5rem;
-            overflow: hidden;
-            font-size: 0.9rem;
+            border-radius: 1.2rem;
+            overflow-x: auto;
+            display: block;
+            font-size: 0.8rem;
         }
+
+        .results-table thead,
+        .results-table tbody {
+            display: table;
+            width: 100%;
+        }
+
         .results-table th {
-            background: linear-gradient(95deg, #FF8C42, #F43F5E);
+            background: linear-gradient(95deg, #1e88e5, #0b5fa0);
             color: white;
-            padding: 12px 10px;
+            padding: 10px 6px;
             font-weight: 700;
         }
+
         .results-table td {
-            padding: 12px 10px;
-            background: #FFFCF5;
-            border-bottom: 1px solid #FFE2BC;
+            padding: 10px 6px;
+            background: #fffef7;
+            border-bottom: 1px solid #cce5ff;
             cursor: pointer;
+            word-break: break-word;
         }
-        .results-table td.editable {
-            background-color: #FFF9E0;
-        }
+
         .delete-btn {
-            background: #F25E5E;
+            background: #f25e5e;
             border: none;
-            padding: 5px 14px;
+            padding: 4px 12px;
             border-radius: 30px;
             color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.1s;
+            font-size: 0.75rem;
         }
+
         .delete-all-btn {
-            background: #D94A2B;
+            background: #c73c1e;
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border-radius: 60px;
             font-weight: 800;
-            margin-top: 1.5rem;
+            margin-top: 1.2rem;
             border: none;
             color: white;
             cursor: pointer;
         }
-        .hidden { display: none; }
-        .button-group { display: flex; gap: 14px; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+
+        .hidden {
+            display: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* модальное окно */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 2000;
             animation: fadeIn 0.2s;
         }
+
         .modal-content {
-            background: linear-gradient(145deg, #ffffff, #FFF7E8);
-            border-radius: 3rem;
-            padding: 2.5rem 2rem;
+            background: linear-gradient(145deg, #f0faff, #ffffff);
+            border-radius: 2rem;
+            padding: 2rem 1.5rem;
             text-align: center;
-            max-width: 440px;
+            max-width: 400px;
             width: 85%;
-            border: 2px solid #FFC48A;
-            box-shadow: 0 35px 45px rgba(0,0,0,0.3);
+            border: 2px solid #7ac0ff;
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.25);
         }
+
         .modal-content h2 {
-            font-size: 2rem;
-            background: linear-gradient(125deg, #F97316, #F4A261);
+            font-size: 1.7rem;
+            background: linear-gradient(125deg, #1e88e5, #0d47a1);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
             margin-bottom: 0.5rem;
         }
+
         .modal-content input {
             width: 100%;
-            padding: 0.9rem;
+            padding: 0.8rem;
             margin: 1rem 0;
             border-radius: 60px;
-            border: 1px solid #FFBC7A;
+            border: 1px solid #7abff7;
             font-size: 1rem;
             text-align: center;
         }
+
         .certificate-container {
             position: fixed;
             top: -9999px;
             left: -9999px;
         }
+
         .certificate {
-            width: 780px;
-            background: linear-gradient(115deg, #FFFBF0, #FFF3E0);
-            border: 12px double #FFB347;
+            width: 760px;
+            background: linear-gradient(115deg, #f9fcff, #eef5fc);
+            border: 12px double #2c7be5;
             border-radius: 48px;
-            padding: 2.2rem;
+            padding: 2rem;
             text-align: center;
             font-family: 'Playfair Display', 'Georgia', serif;
         }
-        .certificate h1 { color: #F43F5E; font-size: 2rem; letter-spacing: 1px; }
-        .certificate .name { font-size: 2rem; font-weight: bold; color: #C25D2B; border-bottom: 2px dashed #F4A261; display: inline-block; margin: 0.6rem 0; }
-        .certificate .score-text { font-size: 1.1rem; margin: 1rem 0; color: #3A2C1F; }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+
+        .certificate h1 {
+            color: #1565c0;
+            font-size: 2rem;
         }
+
+        .certificate .name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #0a4b7a;
+            border-bottom: 2px dashed #48c6ef;
+            display: inline-block;
+            margin: 0.6rem 0;
+        }
+
         .progress-custom {
-            margin-top: 0.5rem;
-            background: #FFE6C9;
+            margin-top: 0.3rem;
+            background: #d9eaff;
             border-radius: 40px;
             height: 8px;
             width: 100%;
             overflow: hidden;
+            margin-bottom: 1rem;
         }
+
         .progress-fill {
-            background: linear-gradient(90deg, #FFB347, #FF5F6D);
+            background: linear-gradient(90deg, #48c6ef, #1e88e5);
             width: 0%;
             height: 100%;
             border-radius: 40px;
             transition: width 0.3s ease;
         }
-        @media (max-width: 680px) {
-            body { padding: 1rem; }
-            .question-text { font-size: 1.3rem; padding: 1rem; }
-            .opt { padding: 0.8rem 1rem; font-size: 0.9rem; }
-            .travel-header { flex-direction: column; align-items: start; }
-            .mode-btn { padding: 0.5rem 1.4rem; font-size: 0.85rem; }
-            .btn { padding: 0.6rem 1.2rem; }
-            .admin-header h2 { font-size: 1.4rem; }
-        }
+
         .footer-note {
-            background: #FFFFF2;
-            border-radius: 0 0 3rem 3rem;
-            padding: 0.8rem;
+            background: #e3f0fd;
+            border-radius: 0 0 2rem 2rem;
+            padding: 0.7rem;
             text-align: center;
             font-weight: 500;
-            color: #FF6B4A;
+            color: #0e6eb3;
+            font-size: 0.75rem;
+        }
+
+        /* АДАПТИВНОСТЬ ДЛЯ ТЕЛЕФОНОВ */
+        @media (max-width: 640px) {
+            body {
+                padding: 0.8rem;
+            }
+
+            .mode-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .travel-header {
+                padding: 1rem;
+            }
+
+            .title-box h1 {
+                font-size: 1.3rem;
+            }
+
+            .title-box p {
+                font-size: 0.7rem;
+            }
+
+            .progress-strip {
+                padding: 0.6rem 1rem;
+            }
+
+            .q-counter, .score-badge, .player-name-display {
+                font-size: 0.75rem;
+                padding: 0.3rem 1rem;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+                padding: 0.9rem 1rem;
+            }
+
+            .opt {
+                padding: 0.7rem 1rem;
+                font-size: 0.85rem;
+                gap: 8px;
+            }
+
+            .opt::before {
+                font-size: 1.1rem;
+                width: 26px;
+            }
+
+            .btn {
+                padding: 0.55rem 1.2rem;
+                font-size: 0.8rem;
+            }
+
+            .nav-buttons {
+                gap: 0.6rem;
+            }
+
+            .admin-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .login-input {
+                padding: 0.5rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px 4px;
+                font-size: 0.7rem;
+            }
+
+            .delete-btn {
+                padding: 3px 8px;
+                font-size: 0.65rem;
+            }
+
+            .modal-content {
+                padding: 1.8rem 1rem;
+                width: 90%;
+            }
+
+            .modal-content h2 {
+                font-size: 1.4rem;
+            }
+
+            .certificate {
+                width: 94%;
+                padding: 1.2rem;
+                border-width: 8px;
+            }
+
+            .certificate h1 {
+                font-size: 1.4rem;
+            }
+
+            .certificate .name {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* очень маленькие экраны */
+        @media (max-width: 450px) {
+            .question-text {
+                font-size: 1rem;
+            }
+
+            .opt {
+                font-size: 0.8rem;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+            }
+
+            .mode-tabs {
+                gap: 0.6rem;
+            }
         }
     </style>
 </head>
@@ -443,8 +665,8 @@
         <div class="quiz-card">
             <div class="travel-header">
                 <div class="title-box">
-                    <h1>🌍✨ КВИЗ ВОКРУГ СВЕТА ✨🌍</h1>
-                    <p>🌏 Интерактивная платформа для изучения традиций. 10 вопросов — и ваш сертификат!</p>
+                    <h1>🌊✨ КВИЗ ВОКРУГ СВЕТА ✨🌊</h1>
+                    <p>🏝️ Интерактивная платформа для изучения традиций. 10 вопросов — и ваш сертификат!</p>
                 </div>
             </div>
             <div class="progress-strip">
@@ -462,7 +684,7 @@
             <div class="admin-header">
                 <h2>🏆 ЛИДЕРЫ ПУТЕШЕСТВИЙ</h2>
                 <div class="login-area">
-                    <input type="password" id="adminPass" class="login-input" placeholder="Парол администратора">
+                    <input type="password" id="adminPass" class="login-input" placeholder="Пароль администратора">
                     <button id="adminLoginBtn" class="btn btn-primary">🔑 Вход</button>
                 </div>
             </div>
@@ -477,13 +699,13 @@
 <div class="certificate-container">
     <div class="certificate" id="certificate">
         <h1>🏆 КВИЗ ВОКРУГ СВЕТА 🏆</h1>
-        <div style="font-size:2.2rem;">🌍🧭✨</div>
+        <div style="font-size:2rem;">🌊🧭✨</div>
         <h3>СЕРТИФИКАТ УЧАСТНИКА</h3>
         <p>Награждается</p>
         <div class="name" id="certName">__________</div>
         <p class="score-text" id="certScoreText">за успешное прохождение культурной викторины</p>
         <div class="stars" id="certStars" style="font-size:1.8rem; margin:10px 0;">★★★★★</div>
-        <div class="date" id="certDate" style="margin-top:18px; color:#AA7942;"></div>
+        <div class="date" id="certDate" style="margin-top:18px; color:#2277aa;"></div>
     </div>
 </div>
 
@@ -539,10 +761,10 @@
         quizScoreSpan.innerText = `🏆 Очки: ${score}/${QUESTIONS.length}`;
         if (!quizFinished) quizQCounter.innerText = `Вопрос ${currentIndex+1}/${QUESTIONS.length}`;
         else quizQCounter.innerText = `✅ Завершено!`;
-        playerNameSpan.innerHTML = `🧑‍✈️ ${currentPlayerName || 'Гость'}`;
+        playerNameSpan.innerHTML = `🧭 ${currentPlayerName || 'Гость'}`;
         const fillEl = document.querySelector('.progress-fill');
         if(fillEl && !quizFinished) {
-            let percent = ((currentIndex+1)/QUESTIONS.length) * 100;
+            let percent = ((currentIndex)/QUESTIONS.length) * 100;
             fillEl.style.width = `${percent}%`;
         }
     }
@@ -571,13 +793,13 @@
     async function getCertificateDataURL() {
         document.getElementById('certName').innerText = currentPlayerName;
         let score = computeScore();
-        document.getElementById('certScoreText').innerHTML = `за успешное прохождение культурной викторины<br><strong style="font-size:1.3rem;">${score} из ${QUESTIONS.length} баллов</strong>`;
+        document.getElementById('certScoreText').innerHTML = `за успешное прохождение культурной викторины<br><strong style="font-size:1.2rem;">${score} из ${QUESTIONS.length} баллов</strong>`;
         document.getElementById('certStars').innerHTML = getStars(score);
-        document.getElementById('certDate').innerHTML = new Date().toLocaleDateString('ru-RU') + "2026 г";
+        document.getElementById('certDate').innerHTML = new Date().toLocaleDateString('ru-RU') + " г.";
         let element = document.getElementById('certificate');
         return new Promise(resolve => {
             setTimeout(() => {
-                html2canvas(element, { scale: 2, backgroundColor: '#FFFDF5' }).then(canvas => resolve(canvas.toDataURL()));
+                html2canvas(element, { scale: 2, backgroundColor: '#F9FCFE' }).then(canvas => resolve(canvas.toDataURL()));
             }, 80);
         });
     }
@@ -586,7 +808,7 @@
         let dataUrl = await getCertificateDataURL();
         let newTab = window.open();
         if (newTab) {
-            newTab.document.write(`<html><head><title>Сертификат ${currentPlayerName}</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;background:#F5E7D3;} img{max-width:95%;height:auto;box-shadow:0 12px 28px rgba(0,0,0,0.2);border-radius:1rem;}</style></head><body><img src="${dataUrl}"></body></html>`);
+            newTab.document.write(`<html><head><title>Сертификат ${currentPlayerName}</title><style>body{margin:0;display:flex;justify-content:center;align-items:center;background:#d4eaff;} img{max-width:95%;height:auto;box-shadow:0 12px 28px rgba(0,0,0,0.2);border-radius:1rem;}</style></head><body><img src="${dataUrl}"></body></html>`);
         } else alert("Разрешите всплывающие окна для сертификата");
     }
 
@@ -604,7 +826,7 @@
         quizDynamic.innerHTML = `
             <div class="question-area" style="text-align:center">
                 <div class="question-text">🧳 Ваш результат путешествия 🧳</div>
-                <div style="font-size:3.2rem; font-weight:800; margin:0.5rem 0; background: linear-gradient(135deg,#F97316,#FF5E62); background-clip:text; -webkit-background-clip:text; color:transparent;">${score}/${QUESTIONS.length}</div>
+                <div style="font-size:2.8rem; font-weight:800; margin:0.5rem 0; background: linear-gradient(135deg,#1e88e5,#0b5fa0); background-clip:text; -webkit-background-clip:text; color:transparent;">${score}/${QUESTIONS.length}</div>
                 <p style="font-weight:500;">🎯 ${percent}% правильных ответов</p>
                 <div class="button-group">
                     <button class="btn btn-secondary" id="restartBtn">🔄 Пройти заново</button>
@@ -672,16 +894,15 @@
         updateHeader();
     }
 
-    // Редактирование ячейки
     function makeEditable(cell, rowIndex, field) {
         if (!adminLogged) return;
         const currentValue = cell.innerText;
         const input = document.createElement('input');
         input.value = currentValue;
         input.style.width = '100%';
-        input.style.padding = '4px';
-        input.style.borderRadius = '20px';
-        input.style.border = '1px solid #FFB347';
+        input.style.padding = '6px';
+        input.style.borderRadius = '30px';
+        input.style.border = '1px solid #2c7be5';
         input.style.textAlign = 'center';
         cell.innerHTML = '';
         cell.appendChild(input);
@@ -703,7 +924,7 @@
                 cell.innerText = newValue;
             }
             saveResultsToLocalStorage();
-            renderAdminTable(); // обновляем таблицу, чтобы снять режим редактирования
+            renderAdminTable();
         };
         input.addEventListener('blur', save);
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') save(); });
@@ -712,11 +933,11 @@
     function renderAdminTable() {
         const container = document.getElementById('adminTableArea');
         if (resultsDB.length === 0) {
-            container.innerHTML = '<p style="padding:2rem; text-align:center; background:#FFFCF0; border-radius:2rem;">✨ Пока нет результатов. Пройдите квиз или добавьте вручную.</p>';
+            container.innerHTML = '<p style="padding:1.5rem; text-align:center; background:#f4fafe; border-radius:1.5rem;">✨ Пока нет результатов. Пройдите квиз или добавьте вручную.</p>';
             document.getElementById('addRecordArea').style.display = adminLogged ? 'flex' : 'none';
             return;
         }
-        let html = `<table class="results-table"><thead><tr><th>#</th><th>Имя</th><th>Баллы (max 10)</th><th>Дата/время</th><th>Действие</th></tr></thead><tbody>`;
+        let html = `<div style="overflow-x:auto;"><table class="results-table"><thead><tr><th>#</th><th>Имя</th><th>Баллы (max 10)</th><th>Дата/время</th><th>Действие</th></tr></thead><tbody>`;
         resultsDB.forEach((r, i) => {
             html += `<tr>
                         <td>${i+1}</td>
@@ -726,12 +947,11 @@
                         <td>${adminLogged ? `<button class="delete-btn" data-idx="${i}">🗑️</button>` : '<span>—</span>'}</td>
                      </tr>`;
         });
-        html += `</tbody></table>`;
+        html += `</tbody></table></div>`;
         if (adminLogged) html += `<button id="delAllBtn" class="delete-all-btn">🗑️ Удалить всё</button>`;
         container.innerHTML = html;
         
         if (adminLogged) {
-            // Удаление одной записи
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     let idx = parseInt(btn.dataset.idx);
@@ -740,7 +960,6 @@
                     renderAdminTable();
                 });
             });
-            // Удалить всё
             const delAll = document.getElementById('delAllBtn');
             if (delAll) delAll.addEventListener('click', () => {
                 if (confirm('Удалить все результаты?')) {
@@ -749,7 +968,6 @@
                     renderAdminTable();
                 }
             });
-            // Двойной клик для редактирования
             document.querySelectorAll('.edit-cell').forEach(cell => {
                 cell.addEventListener('dblclick', (e) => {
                     e.stopPropagation();
@@ -765,7 +983,7 @@
     }
 
     function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
+        return String(str).replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
@@ -773,7 +991,6 @@
         });
     }
 
-    // Добавление записи вручную
     function addManualRecord() {
         let name = prompt("Введите имя участника:", "Новый турист");
         if (!name) return;
